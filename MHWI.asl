@@ -5,14 +5,14 @@ state("MonsterHunterWorld")
 
 startup
 {
-    settings.Add("loadRemoval", true, "Load Removal");
+  settings.Add("loadRemoval", true, "Load Removal");
 }
 
 isLoading
 {
-	if (current.isLoading == 0x01 && settings["loadRemoval"])
-	{
-		return true;
-	}
+  if (current.isLoading == 0x01 && settings["loadRemoval"])
+  {
+    return true;
+  }
   return false
 }
