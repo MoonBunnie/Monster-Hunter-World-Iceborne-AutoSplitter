@@ -14,5 +14,5 @@ isLoading
   {
     return true;
   }
-  return false
+  return false;
 }
