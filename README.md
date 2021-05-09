@@ -2,9 +2,9 @@
 LiveSplit AutoSplitter Script for Monster Hunter World: Iceborne
 
 ## Current Features: ##
+* Memory scanning for compatibility across game updates
 * Load Remover
 
 ## Planned Features: ##
-* Memory scanning for compatibility across game updates
 * Cutscene time remover
 * Automatic splitting and timer control based on quest states
