@@ -1,4 +1,4 @@
-# Monster-Hunter-World-Iceborne-AutoSplitter
+# Monster Hunter World: Iceborne AutoSplitter
 LiveSplit AutoSplitter Script for Monster Hunter World: Iceborne
 
 Current Features:
