@@ -1,6 +1,6 @@
 // AutoSplitter script for Monster Hunter World: Iceborne (by MoonBunnie & JalBagel)
 
-//State for v15.11.00
+//Supports v15.10+
 state("MonsterHunterWorld")
 {
 }
@@ -35,11 +35,16 @@ init
 
   //Setup Memory Watchers
   vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePtr1, 0x146DB));
+  
+  //Register Watchers
+  vars.watchers = new MemoryWatcherList() {
+    vars.isLoading
+  };
 }
 
 update {
   //Update Memory Watchers
-  vars.isLoading.Update(game);
+  vars.watchers.UpdateAll(game);
 }
 
 isLoading
