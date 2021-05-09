@@ -1,6 +1,9 @@
+// AutoSplitter script for Monster Hunter World: Iceborne (by MoonBunnie & JalBagel)
+
+//State for v15.11.00
 state("MonsterHunterWorld")
 {
-  byte isLoading : 0x5224B80, 0x146DB;
+  byte loading  : 0x5224B80, 0x146DB;
 }
 
 startup
@@ -10,9 +13,5 @@ startup
 
 isLoading
 {
-  if (current.isLoading == 0x01 && settings["loadRemoval"])
-  {
-    return true;
-  }
-  return false;
+  return (current.loading == 0x01 && settings["loadRemoval"]);
 }
