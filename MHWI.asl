@@ -28,7 +28,7 @@ init
   foreach (KeyValuePair<string, SigScanTarget> entry in vars.scanTargets) {
     foreach (var page in memory.MemoryPages(true)) {
       //Skip pages outside of exe module
-      if ((long)page.BaseAddress <= (long)modules.First().BaseAddress || (long)page.BaseAddress >= (long)modules.First().BaseAddress + modules.First().ModuleMemorySize) { continue;}
+      if ((long)page.BaseAddress < (long)modules.First().BaseAddress || (long)page.BaseAddress > (long)modules.First().BaseAddress + modules.First().ModuleMemorySize) { continue;}
       
       //Get first scan result
       var scanner = new SignatureScanner(game, page.BaseAddress, (int)page.RegionSize);
@@ -42,12 +42,16 @@ init
 
   //Setup Memory Watchers
   vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sMhGUI"], 0x146DB));
-  vars.activeQuestId = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0x4C));
+  vars.activeQuestId = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sQuest"], 0x4C));
+  vars.activeQuestMainObj1State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xDB));
+  vars.activeQuestMainObj2State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xF3));
   
   //Register Watchers
   vars.watchers = new MemoryWatcherList() {
     vars.isLoading,
-    vars.activeQuestId
+    vars.activeQuestId,
+    vars.activeQuestMainObj1State,
+    vars.activeQuestMainObj2State
   };
 }
 
