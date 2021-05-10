@@ -10,7 +10,8 @@ startup
   //Signatures for Base Pointer scans  
   vars.scanTargets = new Dictionary<string, SigScanTarget>();
   vars.scanTargets.Add("sMhGUI", new SigScanTarget(3, "48 8B 05 ?? ?? ?? ?? 0F 28 74 24 40 48 8B B4 24 ?? ?? ?? ?? 8B 98")); //Load Remover
-  vars.scanTargets.Add("sQuest", new SigScanTarget(7, "48 83 EC 48 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 0F 84 E0 00 00 00 48 8B 0D ?? ?? ?? ?? E8")); //Quest Data
+  vars.scanTargets.Add("sQuest", new SigScanTarget(7, "48 83 EC 48 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 0F 84 E0 00 00 00 48 8B 0D ?? ?? ?? ?? E8")); //Quest
+  vars.scanTargets.Add("sEventDemo", new SigScanTarget(3, "48 8B 05 ?? ?? ?? ?? 83 78 58 01 77 11")); //Cutscene
   
   //Initialize Base Pointer dictionary
   vars.basePointers = new Dictionary<string, IntPtr>();
@@ -20,6 +21,7 @@ startup
   
   //Settings
   settings.Add("loadRemoval", true, "Load Removal");
+  settings.Add("cutsceneRemoval", false, "Cutscene Removal");
 }
 
 init
@@ -45,13 +47,15 @@ init
   vars.activeQuestId = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sQuest"], 0x4C));
   vars.activeQuestMainObj1State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xDB));
   vars.activeQuestMainObj2State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xF3));
+  vars.cutsceneState = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sEventDemo"], 0x58));
   
   //Register Watchers
   vars.watchers = new MemoryWatcherList() {
     vars.isLoading,
     vars.activeQuestId,
     vars.activeQuestMainObj1State,
-    vars.activeQuestMainObj2State
+    vars.activeQuestMainObj2State,
+    vars.cutsceneState
   };
 }
 
@@ -62,5 +66,6 @@ update {
 
 isLoading
 {
-  return (vars.isLoading.Current == 0x01 && settings["loadRemoval"]);
+  return (vars.isLoading.Current == 1 && settings["loadRemoval"]
+          || vars.cutsceneState.Current != 0 && settings["cutsceneRemoval"]);
 }
