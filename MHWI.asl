@@ -22,6 +22,8 @@ startup
   //Settings
   settings.Add("loadRemoval", true, "Load Removal");
   settings.Add("cutsceneRemoval", false, "Cutscene Removal");
+  
+  timer.CurrentTimingMethod = TimingMethod.GameTime;
 }
 
 init
