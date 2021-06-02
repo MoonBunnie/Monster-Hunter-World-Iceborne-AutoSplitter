@@ -1,9 +1,7 @@
 // AutoSplitter script for Monster Hunter World: Iceborne (by MoonBunnie & JalBagel)
 
 //Supports v15.10+
-state("MonsterHunterWorld")
-{
-}
+state("MonsterHunterWorld"){}
 
 startup
 {
@@ -45,7 +43,8 @@ init
   }
 
   //Setup Memory Watchers
-  vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sMhGUI"], 0x146DB));
+  //vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sMhGUI"], 0x146DB));
+  vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sMhGUI"], 0x13F28, 0x1D04));
   vars.activeQuestId = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sQuest"], 0x4C));
   vars.activeQuestMainObj1State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xDB));
   vars.activeQuestMainObj2State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xF3));
@@ -68,6 +67,15 @@ update {
 
 isLoading
 {
-  return (vars.isLoading.Current == 1 && settings["loadRemoval"]
-          || vars.cutsceneState.Current != 0 && settings["cutsceneRemoval"]);
+  //Load Screen Check
+  if ((vars.isLoading.Current == 1 || vars.isLoading.Current == 2) && settings["loadRemoval"]) {
+    return true;
+  }
+  
+  //Cutscene Check
+    if (vars.cutsceneState.Current != 0 && settings["cutsceneRemoval"]) {
+    return true;
+  }
+  
+  return false;
 }
