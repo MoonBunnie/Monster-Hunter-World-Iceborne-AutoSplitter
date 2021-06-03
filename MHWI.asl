@@ -43,8 +43,9 @@ init
   }
 
   //Setup Memory Watchers
-  //vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sMhGUI"], 0x146DB));
   vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sMhGUI"], 0x13F28, 0x1D04));
+  vars.selectMessage = new StringWatcher(new DeepPointer(vars.basePointers["sMhGUI"], 0x13D60, 0x2968, 0x0), 64);
+  vars.selectOption = new MemoryWatcher<ushort>(new DeepPointer(vars.basePointers["sMhGUI"], 0x13D60, 0x22A8));
   vars.activeQuestId = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sQuest"], 0x4C));
   vars.activeQuestMainObj1State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xDB));
   vars.activeQuestMainObj2State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xF3));
@@ -63,6 +64,19 @@ init
 update {
   //Update Memory Watchers
   vars.watchers.UpdateAll(game);
+}
+
+start {
+  //Update Specific Watchers
+  vars.selectMessage.Update(game);
+  vars.selectOption.Update(game);
+  
+  if(vars.selectOption.Old == 9760 
+    && vars.selectOption.Current == 0
+    && vars.selectMessage.Old == "Start the game with this character?") {
+    return true;
+  }
+  return false;
 }
 
 isLoading
