@@ -18,9 +18,26 @@ startup
   }
   
   //Settings
+  settings.Add("settings", true, "General Settings");
+  settings.CurrentDefaultParent = "settings";
   settings.Add("loadRemoval", true, "Load Removal");
   settings.Add("cutsceneRemoval", false, "Cutscene Removal");
+  settings.CurrentDefaultParent = null;
   
+  settings.Add("splits_start", true, "Start Condition (Choose One)");
+  settings.CurrentDefaultParent = "splits_start";
+  settings.Add("splits_start_char", false, "Character Creation Finalized");
+  settings.CurrentDefaultParent = null;
+  
+  settings.Add("splits_end", true, "End Condition (Choose One)");
+  settings.CurrentDefaultParent = "splits_end";
+  settings.Add("splits_end_1", false, "Land of Convergence");
+  //settings.Add("splits_end_2", false, "Collosal Task");
+  //settings.Add("splits_end_3", false, "History Books");
+  //settings.Add("splits_end_4", false, "Paean of Guidance");
+  settings.CurrentDefaultParent = null;
+  
+  //Force Game Time
   timer.CurrentTimingMethod = TimingMethod.GameTime;
 }
 
@@ -67,13 +84,27 @@ update {
 }
 
 start {
-  //Update Specific Watchers
-  vars.selectMessage.Update(game);
-  vars.selectOption.Update(game);
-  
-  if(vars.selectOption.Old == 9760 
-    && vars.selectOption.Current == 0
-    && vars.selectMessage.Old == "Start the game with this character?") {
+  //For Character Creation Finalized
+  if(settings["splits_start_char"]) {
+    //Update Specific Watchers
+    vars.selectMessage.Update(game);
+    vars.selectOption.Update(game);
+    
+    if(vars.selectOption.Old == 9760 
+      && vars.selectOption.Current == 0
+      && vars.selectMessage.Old == "Start the game with this character?") {
+      return true;
+    }
+  }
+  return false;
+}
+
+split {
+  //Split for Ending
+  if(settings["splits_end_1"]
+    && vars.activeQuestId.Current == 804
+    && vars.activeQuestMainObj1State.Old != 5
+    && vars.activeQuestMainObj1State.Current == 5) {
     return true;
   }
   return false;
