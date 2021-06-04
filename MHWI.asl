@@ -38,7 +38,7 @@ startup {
 init {
   //Initialize Rescan Params
   vars.scanErrors = 9999;
-  vars.waitCycles = 300;
+  vars.waitCycles = 0;
   
   //Initialize Base Pointer dictionary
   vars.basePointers = new Dictionary<string, IntPtr>();
