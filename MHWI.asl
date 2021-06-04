@@ -3,13 +3,13 @@
 //Supports v15.10+
 state("MonsterHunterWorld"){}
 
-startup
-{
+startup {
   //Signatures for Base Pointer scans  
   vars.scanTargets = new Dictionary<string, SigScanTarget>();
-  vars.scanTargets.Add("sMhGUI", new SigScanTarget(3, "48 8B 05 ?? ?? ?? ?? 0F 28 74 24 40 48 8B B4 24 ?? ?? ?? ?? 8B 98")); //Load Remover
-  vars.scanTargets.Add("sQuest", new SigScanTarget(7, "48 83 EC 48 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 0F 84 E0 00 00 00 48 8B 0D ?? ?? ?? ?? E8")); //Quest
-  vars.scanTargets.Add("sEventDemo", new SigScanTarget(3, "48 8B 05 ?? ?? ?? ?? 83 78 58 01 77 11")); //Cutscene
+  vars.scanTargets.Add("sMhGUI", new SigScanTarget(3, "48 8B 05 ?? ?? ?? ?? 0F 28 74 24 40 48 8B B4 24 ?? ?? ?? ?? 8B 98"));
+  vars.scanTargets.Add("sQuest", new SigScanTarget(7, "48 83 EC 48 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 0F 84 E0 00 00 00 48 8B 0D ?? ?? ?? ?? E8"));
+  vars.scanTargets.Add("sEventDemo", new SigScanTarget(3, "48 8B 05 ?? ?? ?? ?? 83 78 58 01 77 11"));
+  vars.scanTargets.Add("sMhArea", new SigScanTarget(3, "48 8B 05 ?? ?? ?? ?? 0F B6 80 EB D2 00 00 C3"));
   
   //Initialize Base Pointer dictionary
   vars.basePointers = new Dictionary<string, IntPtr>();
@@ -41,8 +41,7 @@ startup
   timer.CurrentTimingMethod = TimingMethod.GameTime;
 }
 
-init
-{
+init {
   //Base Pointer Scans
   foreach (KeyValuePair<string, SigScanTarget> entry in vars.scanTargets) {
     foreach (var page in memory.MemoryPages(true)) {
@@ -61,12 +60,12 @@ init
 
   //Setup Memory Watchers
   vars.isLoading = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sMhGUI"], 0x13F28, 0x1D04));
-  vars.selectMessage = new StringWatcher(new DeepPointer(vars.basePointers["sMhGUI"], 0x13D60, 0x2968, 0x0), 64);
-  vars.selectOption = new MemoryWatcher<ushort>(new DeepPointer(vars.basePointers["sMhGUI"], 0x13D60, 0x22A8));
   vars.activeQuestId = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sQuest"], 0x4C));
   vars.activeQuestMainObj1State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xDB));
   vars.activeQuestMainObj2State = new MemoryWatcher<byte>(new DeepPointer(vars.basePointers["sQuest"], 0xF3));
   vars.cutsceneState = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sEventDemo"], 0x58));
+  vars.areaStageID = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sMhArea"], 0x8058, 0xCC));
+  vars.areaCharCreateState = new MemoryWatcher<int>(new DeepPointer(vars.basePointers["sMhArea"], 0x8058, 0x1D0));
   
   //Register Watchers
   vars.watchers = new MemoryWatcherList() {
@@ -87,12 +86,12 @@ start {
   //For Character Creation Finalized
   if(settings["splits_start_char"]) {
     //Update Specific Watchers
-    vars.selectMessage.Update(game);
-    vars.selectOption.Update(game);
+    vars.areaStageID.Update(game);
+    vars.areaCharCreateState.Update(game);
     
-    if(vars.selectOption.Old == 9760 
-      && vars.selectOption.Current == 0
-      && vars.selectMessage.Old == "Start the game with this character?") {
+    if(vars.areaStageID.Current == 0 
+      && vars.areaCharCreateState.Current == 10
+      && vars.areaCharCreateState.Old == 9) {
       return true;
     }
   }
@@ -110,8 +109,7 @@ split {
   return false;
 }
 
-isLoading
-{
+isLoading {
   //Load Screen Check
   if ((vars.isLoading.Current == 1 || vars.isLoading.Current == 2) && settings["loadRemoval"]) {
     return true;
