@@ -15,7 +15,7 @@ startup {
   settings.Add("settings", true, "General Settings");
   settings.CurrentDefaultParent = "settings";
   settings.Add("loadRemoval", true, "Load Removal");
-  settings.Add("cutsceneRemoval", false, "Cutscene Removal");
+  settings.Add("cutsceneRemoval", true, "Cutscene Removal");
   settings.CurrentDefaultParent = null;
   
   settings.Add("splits_start", true, "Start Condition (Choose One)");
