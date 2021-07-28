@@ -25,9 +25,10 @@ startup {
   
   settings.Add("splits_end", true, "End Condition (Choose One)");
   settings.CurrentDefaultParent = "splits_end";
-  settings.Add("splits_end_1", false, "Land of Convergence");
-  //settings.Add("splits_end_2", false, "Collosal Task");
-  //settings.Add("splits_end_3", false, "History Books");
+  
+  settings.Add("splits_end_1", false, "History Books");
+  settings.Add("splits_end_2", false, "Colossal Task");
+  settings.Add("splits_end_3", false, "Land of Convergence");
   //settings.Add("splits_end_4", false, "Paean of Guidance");
   settings.CurrentDefaultParent = null;
   
@@ -36,6 +37,9 @@ startup {
 }
 
 init {
+  //Because zorah quests don't have normal end conditions, split by counting cutscenes viewed in Zorah quests
+  vars.zorahCutscenesViewed = 0;
+
   //Initialize Rescan Params
   vars.scanErrors = 9999;
   vars.waitCycles = 0;
@@ -109,6 +113,14 @@ update {
   if(vars.init()){ 
     //Update Memory Watchers
     vars.watchers.UpdateAll(game);
+
+    //Check for Zorah cutscene viewing
+    if(((vars.activeQuestId.Current == 401 && settings["splits_end_1"]) || (vars.activeQuestId.Current == 504 && settings["splits_end_2"]))
+      && vars.cutsceneState.Current != 0
+      && vars.cutsceneState.Old == 0){
+        vars.zorahCutscenesViewed++;
+      }
+
   } else {
     return false;
   }
@@ -132,10 +144,19 @@ start {
 
 split {
   //Split for Ending
-  if(settings["splits_end_1"]
+  if(settings["splits_end_3"]
     && vars.activeQuestId.Current == 804
     && vars.activeQuestMainObj1State.Old != 5
     && vars.activeQuestMainObj1State.Current == 5) {
+    return true;
+  }
+
+  //Split for Zorahs
+  //Zorah cutscene counts don't increment unless end condition is selected, so no check is necessary here
+  if((vars.activeQuestId.Current == 504 || vars.activeQuestId.Current == 401)
+    && vars.cutsceneState.Current != 0
+    && vars.zorahCutscenesViewed == 2) {
+    vars.zorahCutscenesViewed = 0; //Reset increment to avoid repeated split
     return true;
   }
   return false;
