@@ -25,20 +25,55 @@ startup {
   
   settings.Add("splits_end", true, "End Condition (Choose One)");
   settings.CurrentDefaultParent = "splits_end";
-  
   settings.Add("splits_end_1", false, "History Books");
   settings.Add("splits_end_2", false, "Colossal Task");
   settings.Add("splits_end_3", false, "Land of Convergence");
   //settings.Add("splits_end_4", false, "Paean of Guidance");
   settings.CurrentDefaultParent = null;
+
+  settings.Add("full_autosplit", false, "Full Autosplitting (Beta)");
+  settings.CurrentDefaultParent = "full_autosplit";
+  settings.Add("split_pinkian_tracks", true, "Include Pink Rathian Tracks Split");
+  settings.Add("split_elder_tracks", true, "Include Elder Tracks Split");
   
   //Force Game Time
   timer.CurrentTimingMethod = TimingMethod.GameTime;
 }
 
 init {
-  //Because zorah quests don't have normal end conditions, split by counting cutscenes viewed in Zorah quests
+  //Instantiate zorah and astera related variables
+  vars.asteraCutscenesViewed = 0;
   vars.zorahCutscenesViewed = 0;
+
+  //Track splitting variables
+  vars.anjaQuestsLoaded = 0;
+  vars.nergiQuestsLoaded = 0;
+  
+  //Quest Id List *Includes assignments linked to expedition in case of multiplayer or return and post
+  vars.questsToSplitOn = new List<int>(){
+    101,
+    102,
+    103,
+    201,
+    205,
+    301,
+    302,
+    305,
+    306,
+    405,
+    407,
+    408,
+    501,
+    502,
+    503,
+    601,
+    605,
+    607,
+    701,
+    801,
+    802,
+    803
+  };
 
   //Initialize Rescan Params
   vars.scanErrors = 9999;
@@ -114,16 +149,34 @@ update {
     //Update Memory Watchers
     vars.watchers.UpdateAll(game);
 
-    //Check for Zorah cutscene viewing
-    if(((vars.activeQuestId.Current == 401 && settings["splits_end_1"]) || (vars.activeQuestId.Current == 504 && settings["splits_end_2"]))
-      && vars.cutsceneState.Current != 0
-      && vars.cutsceneState.Old == 0){
-        vars.zorahCutscenesViewed++;
+    //Check for cutscene viewing
+    if(vars.cutsceneState.Old == 0
+      && vars.cutsceneState.Current != 0) {
+      //Astera
+      if(vars.activeQuestId.Current == 2
+        && settings["full_autosplit"]){
+        vars.asteraCutscenesViewed++;
       }
-
+      //Zorah
+      if(vars.activeQuestId.Current == 401 || vars.activeQuestId.Current == 504){
+        if(settings["full_autosplit"]){
+          vars.zorahCutscenesViewed++; //If full autosplit is selected, count should increment on both quests
+        }else{
+          //Otherwise count should only increment if quest and setting match
+          if(vars.activeQuestId.Current == 401 && settings["splits_end_1"]){
+            vars.zorahCutscenesViewed++;
+          }
+          if(vars.activeQuestId.Current == 504 && settings["splits_end_2"]){
+            vars.zorahCutscenesViewed++;
+          }
+        }
+          
+      }
+    }    
   } else {
     return false;
-  }
+  } 
+
 }
 
 start {
@@ -143,20 +196,49 @@ start {
 }
 
 split {
-  //Split for Ending
-  if(settings["splits_end_3"]
-    && vars.activeQuestId.Current == 804
-    && vars.activeQuestMainObj1State.Old != 5
-    && vars.activeQuestMainObj1State.Current == 5) {
+  //Split for all valid quests
+  if(settings["full_autosplit"]
+      && vars.questsToSplitOn.Contains(vars.activeQuestId.Current)
+      && vars.activeQuestMainObj1State.Old != 5
+      && vars.activeQuestMainObj1State.Current == 5) {
+      return true;
+  }
+
+  //For splits relating to cutscene count, all relevant conditions have already been met if the count is correct
+  //Split for Zorahs
+  if(vars.zorahCutscenesViewed == 2) {
+    vars.zorahCutscenesViewed = 0; //Reset increment to avoid repeated split
     return true;
   }
 
-  //Split for Zorahs
-  //Zorah cutscene counts don't increment unless end condition is selected, so no check is necessary here
-  if((vars.activeQuestId.Current == 504 || vars.activeQuestId.Current == 401)
-    && vars.cutsceneState.Current != 0
-    && vars.zorahCutscenesViewed == 2) {
-    vars.zorahCutscenesViewed = 0; //Reset increment to avoid repeated split
+  //Split for Astera
+  if(vars.asteraCutscenesViewed == 4){
+      vars.asteraCutscenesViewed = 0; //Reset increment to avoid repeated split
+      return true;
+    }
+
+  //Split for tracks (Pink Rathian and Elders)
+  if(((vars.activeQuestId.Current == 605 && settings["split_pinkian_tracks"] && vars.anjaQuestsLoaded == 0)
+    || (vars.activeQuestId.Current == 701 && settings["split_elder_tracks"] && vars.nergiQuestsLoaded == 0))
+    && vars.isLoading.Current == 1
+    && vars.isLoading.Old != 1) {
+      //Increment count to avoid double split in the case of a multiplayer run or triple cart
+      if(vars.activeQuestId.Current == 605){
+        vars.anjaQuestsLoaded++;
+      }
+      else if(vars.activeQuestId.Current == 701){
+        vars.nergiQuestsLoaded++;
+      }
+      return true;
+  }
+
+  //TODO: Expeditions
+
+  //Split for Xeno
+  if((settings["full_autosplit"] || settings["splits_end_3"])
+    && vars.activeQuestId.Current == 804
+    && vars.activeQuestMainObj1State.Old != 5
+    && vars.activeQuestMainObj1State.Current == 5) {
     return true;
   }
   return false;
