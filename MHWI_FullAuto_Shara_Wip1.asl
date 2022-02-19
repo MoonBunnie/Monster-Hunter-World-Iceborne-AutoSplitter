@@ -129,7 +129,6 @@ init {
   //Quest & Expedition Split Settings
   vars.questSplits = new Dictionary<int, List<string>>(); //key = Quest ID, value = list of valid conditions to split for
   vars.expeditionSplits = new Dictionary<int, List<string>>(); //key = Area ID, value = list of valid conditions to split for
-  vars.cutsceneCounts = new Dictionary<int, int>(); //key = Area ID, value = cutscenes viewed in quest this play session
   vars.loadedQuests = new Dictionary<int, bool>();
 
   vars.timesObj1Checked = 0;
@@ -142,7 +141,6 @@ init {
 
     // Xeno%
     vars.questSplits.Add(2, new List<string>{"cutscene4"}); //Astera
-    vars.cutsceneCounts.Add(2, 0); // Astera cutscenes
     vars.questSplits.Add(101, new List<string>{"complete"}); //7 Jagras
     vars.questSplits.Add(102, new List<string>{"checkbox1"}); //first check box for kestodons & again first check box for Great Jagras
     vars.questSplits.Add(103, new List<string>{"complete"}); //Great Jagras (quest only)
@@ -154,7 +152,6 @@ init {
     vars.questSplits.Add(305, new List<string>{"complete"}); //Tobi Kadachi
     vars.questSplits.Add(306, new List<string>{"complete"}); //Anjanath
     vars.questSplits.Add(401, new List<string>{"cutscene2"}); //Zorah 1
-    vars.cutsceneCounts.Add(401, 0); //Zorah 1 cutscenes
 
     vars.questSplits.Add(405, new List<string>{"complete"}); //Paolumu
     vars.expeditionSplits.Add(104, new List<string>{"radobaan"}); //HR 7 : Radobaan Expedition, 2nd checkbox for kill, 1st check box for girros. 2nd Checkbox gets checked twice if capturing, so has its own split condition
@@ -164,7 +161,6 @@ init {
     vars.questSplits.Add(502, new List<string>{"complete"}); //Rathalos
     vars.questSplits.Add(503, new List<string>{"complete"}); //Diablos
     vars.questSplits.Add(504, new List<string>{"cutscene2"}); //Zorah 2
-    vars.cutsceneCounts.Add(504, 0); //Zorah 2 cutscenes
 
     vars.expeditionSplits.Add(102, new List<string>{"checkbox2"}); //HR 11 : HR Pukei Expedition, 2nd checkbox for kill/capt. Is there a 3rd for return?
     vars.questSplits.Add(601, new List<string>{"complete"}); //HR Pukei (quest only)
@@ -190,8 +186,7 @@ init {
     vars.questSplits.Add(1303, new List<string>{"complete"}); //Glavenus
     vars.questSplits.Add(1304, new List<string>{"complete"}); //Tigrex
     vars.questSplits.Add(1305, new List<string>{"complete"}); //Brachydios
-    vars.questSplits.Add(1306, new List<string>{"cutscene3"}); //Velkhana Repel
-    vars.cutsceneCounts.Add(1306, 0); //Velkhana repel cutscenes
+    vars.questSplits.Add(1306, new List<string>{"complete"}); //Velkhana Repel
 
     vars.questSplits.Add(1401, new List<string>{"complete"}); //Shrieking Legiana (quest only)
     vars.questSplits.Add(1405, new List<string>{"complete"}); //Fulgur Anjanath
@@ -247,7 +242,7 @@ update {
       vars.cutscenesViewed = 0; //Reset cutscene count on quest change
       // vars.questLoaded = false; //Reset quest load state
     }
-    if(vars.isCutsceneStart) vars.cutsceneCounts[vars.activeQuestId.Current] = vars.cutsceneCounts[vars.activeQuestId.Current] + 1; //Count cutscenes
+    if(vars.isCutsceneStart) vars.cutscenesViewed++; //Count cutscenes
 
     //Track checkbox counts
     if(vars.isObj1Complete) vars.timesObj1Checked++;
@@ -259,7 +254,10 @@ update {
       vars.timesObj1Checked = 0;
       vars.timesObj2Checked = 0;
       vars.timesObj3Checked = 0;
-    }  
+    }
+
+    print("[DEBUG] " + vars.isMR);
+  
   } else {
     return false;
   }
@@ -291,19 +289,12 @@ split {
   
   //Split for Quests on cutscene counts
   if(vars.isCutsceneStart && vars.questSplits.ContainsKey(vars.activeQuestId.Current)) {
-    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene2") && vars.cutsceneCounts[vars.activeQuestId.Current] == 2) {
+    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene2") && vars.cutscenesViewed == 2) {
       vars.cutscenesViewed = 0;
-      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
       return true;
     }
-    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene3") && vars.cutsceneCounts[vars.activeQuestId.Current] == 3) {
+    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene4") && vars.cutscenesViewed == 4) {
       vars.cutscenesViewed = 0;
-      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
-      return true;
-    }
-    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene4") && vars.cutsceneCounts[vars.activeQuestId.Current] == 4) {
-      vars.cutscenesViewed = 0;
-      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
       return true;
     }
   }
