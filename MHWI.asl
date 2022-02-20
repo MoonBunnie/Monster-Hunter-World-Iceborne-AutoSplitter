@@ -197,7 +197,8 @@ init {
     vars.questSplits.Add(1405, new List<string>{"complete"}); //Fulgur Anjanath
     vars.questSplits.Add(1402, new List<string>{"complete"}); //Acidic Glavenus
     vars.questSplits.Add(1403, new List<string>{"complete"}); //Ebony Odogaron
-    vars.questSplits.Add(1404, new List<string>{"complete"}); //Velkhana Siege
+    vars.questSplits.Add(1404, new List<string>{"cutscene2"}); //Velkhana Siege
+    vars.cutsceneCounts.Add(1404, 0); // Velkhana Siege cutscenes
     vars.questSplits.Add(1501, new List<string>{"complete"}); //Velkhana
     vars.expeditionSplits.Add(105, new List<string>{"mrcheckbox2"}); //Seething Bazelgeuse, needs special logic so the game doesn't split during first recess visit
     vars.questSplits.Add(1502, new List<string>{"complete"}); //Seething Bazelgeuse (quest only)
