@@ -155,7 +155,7 @@ init {
     vars.questSplits.Add(305, new List<string>{"complete"}); //Tobi Kadachi
     vars.questSplits.Add(306, new List<string>{"complete"}); //Anjanath
     vars.questSplits.Add(401, new List<string>{"cutscene2"}); //Zorah 1
-    vars.cutsceneCounts.Add(401, 1); //Zorah 1 cutscenes
+    vars.cutsceneCounts.Add(401, 0); //Zorah 1 cutscenes
 
     vars.questSplits.Add(405, new List<string>{"complete"}); //Paolumu
     vars.expeditionSplits.Add(104, new List<string>{"radobaan"}); //HR 7 : Radobaan Expedition, 2nd checkbox for kill, 1st check box for girros. 2nd Checkbox gets checked twice if capturing, so has its own split condition
