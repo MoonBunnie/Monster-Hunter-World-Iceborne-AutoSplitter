@@ -20,7 +20,7 @@ startup {
   
   settings.Add("splits_start", true, "Start Condition (Choose One)");
   settings.CurrentDefaultParent = "splits_start";
-  settings.Add("splits_start_char", false, "Character Creation Finalized");
+  settings.Add("splits_start_char", true, "Character Creation Finalized");
   settings.CurrentDefaultParent = null;
   
   settings.Add("full_autosplit", true, "Full Autosplitting (Beta)");
@@ -131,6 +131,7 @@ init {
   vars.expeditionSplits = new Dictionary<int, List<string>>(); //key = Area ID, value = list of valid conditions to split for
   vars.cutsceneCounts = new Dictionary<int, int>(); //key = Area ID, value = cutscenes viewed in quest this play session
   vars.loadedQuests = new Dictionary<int, bool>();
+  vars.completedQuests = new Dictionary<int, bool>(); // Some computers split twice on certain quests for some reason, so ensure no double splits can occur
 
   vars.timesObj1Checked = 0;
   vars.timesObj2Checked = 0;
@@ -154,7 +155,7 @@ init {
     vars.questSplits.Add(305, new List<string>{"complete"}); //Tobi Kadachi
     vars.questSplits.Add(306, new List<string>{"complete"}); //Anjanath
     vars.questSplits.Add(401, new List<string>{"cutscene2"}); //Zorah 1
-    vars.cutsceneCounts.Add(401, 0); //Zorah 1 cutscenes
+    vars.cutsceneCounts.Add(401, 1); //Zorah 1 cutscenes
 
     vars.questSplits.Add(405, new List<string>{"complete"}); //Paolumu
     vars.expeditionSplits.Add(104, new List<string>{"radobaan"}); //HR 7 : Radobaan Expedition, 2nd checkbox for kill, 1st check box for girros. 2nd Checkbox gets checked twice if capturing, so has its own split condition
@@ -279,34 +280,59 @@ start {
 }
 
 split {
-  //Split for Quests on complete
-  if(vars.isQuestComplete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("complete")){
-    if(vars.activeQuestId.Current == 804) vars.isMR = true; //Killing xeno means master rank has been entered
+  if(!vars.completedQuests.ContainsKey(vars.activeQuestId.Current)) {
+    //Split for Quests on complete
+    if(vars.isQuestComplete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("complete")){
+      if(vars.activeQuestId.Current == 804) vars.isMR = true; //Killing xeno means master rank has been entered
+      vars.completedQuests.Add(vars.activeQuestId.Current, true);
+      return true;
+    } 
+    
+    //Split for Quests as objectives complete
+    if(vars.isObj1Complete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("checkbox1")) {
+    vars.completedQuests.Add(vars.activeQuestId.Current, true);
     return true;
-  } 
-  
-  //Split for Quests as objectives complete
-  if(vars.isObj1Complete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("checkbox1")) return true;
-  if(vars.isObj2Complete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("checkbox2")) return true;
-  if(vars.isObj3Complete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("checkbox3")) return true;
-  
-  //Split for Quests on cutscene counts
-  if(vars.isCutsceneStart && vars.questSplits.ContainsKey(vars.activeQuestId.Current)) {
-    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene2") && vars.cutsceneCounts[vars.activeQuestId.Current] == 2) {
-      vars.cutscenesViewed = 0;
-      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
-      return true;
     }
-    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene3") && vars.cutsceneCounts[vars.activeQuestId.Current] == 3) {
-      vars.cutscenesViewed = 0;
-      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
-      return true;
+    if(vars.isObj2Complete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("checkbox2")) {
+    vars.completedQuests.Add(vars.activeQuestId.Current, true);
+    return true;
     }
-    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene4") && vars.cutsceneCounts[vars.activeQuestId.Current] == 4) {
-      vars.cutscenesViewed = 0;
-      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
-      return true;
+    if(vars.isObj3Complete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("checkbox3")) {
+    vars.completedQuests.Add(vars.activeQuestId.Current, true);
+    return true;
     }
+    
+    //Split for Quests on cutscene counts
+    if(vars.isCutsceneStart && vars.questSplits.ContainsKey(vars.activeQuestId.Current)) {
+      if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene2") && vars.cutsceneCounts[vars.activeQuestId.Current] == 2) {
+        vars.cutscenesViewed = 0;
+        vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
+        vars.completedQuests.Add(vars.activeQuestId.Current, true);
+        return true;
+      }
+      if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene3") && vars.cutsceneCounts[vars.activeQuestId.Current] == 3) {
+        vars.cutscenesViewed = 0;
+        vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
+        vars.completedQuests.Add(vars.activeQuestId.Current, true);
+        return true;
+      }
+      if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene4") && vars.cutsceneCounts[vars.activeQuestId.Current] == 4) {
+        vars.cutscenesViewed = 0;
+        vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
+        vars.completedQuests.Add(vars.activeQuestId.Current, true);
+        return true;
+      }
+    }    
+  }  
+
+  //Split for tracks / on first quest load screen
+  if(vars.isLoadingStart) {
+    //Update so doesn't retrigger on subsequent loading screens
+    if(!vars.loadedQuests.ContainsKey(vars.activeQuestId.Current)){
+      vars.loadedQuests.Add(vars.activeQuestId.Current, true);
+      if(vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("load")) return true;
+    }
+    
   }
   
   //Split for Expeditions
@@ -325,17 +351,7 @@ split {
       && vars.expeditionSplits[vars.areaStageId.Current].Contains("mrcheckbox2")
       && vars.isMR) return true;
   }
-  
-  //Split for tracks / on first quest load screen
-  if(vars.isLoadingStart) {
-    //Update so doesn't retrigger on subsequent loading screens
-    if(!vars.loadedQuests.ContainsKey(vars.activeQuestId.Current)){
-      vars.loadedQuests.Add(vars.activeQuestId.Current, true);
-      if(vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("load")) return true;
-    }
     
-  }
-  
   return false;
 }
 
