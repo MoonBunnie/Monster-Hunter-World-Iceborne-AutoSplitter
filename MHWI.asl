@@ -20,7 +20,7 @@ startup {
   
   settings.Add("splits_start", true, "Start Condition (Choose One)");
   settings.CurrentDefaultParent = "splits_start";
-  settings.Add("splits_start_char", false, "Character Creation Finalized");
+  settings.Add("splits_start_char", true, "Character Creation Finalized");
   settings.CurrentDefaultParent = null;
   
   settings.Add("full_autosplit", true, "Full Autosplitting (Beta)");
@@ -131,7 +131,6 @@ init {
   vars.expeditionSplits = new Dictionary<int, List<string>>(); //key = Area ID, value = list of valid conditions to split for
   vars.cutsceneCounts = new Dictionary<int, int>(); //key = Area ID, value = cutscenes viewed in quest this play session
   vars.loadedQuests = new Dictionary<int, bool>();
-  vars.completedSieges = new Dictionary<int, bool>();
 
   vars.timesObj1Checked = 0;
   vars.timesObj2Checked = 0;
@@ -292,26 +291,21 @@ split {
   if(vars.isObj3Complete && vars.questSplits.ContainsKey(vars.activeQuestId.Current) && vars.questSplits[vars.activeQuestId.Current].Contains("checkbox3")) return true;
   
   //Split for Quests on cutscene counts
-  if(!vars.completedSieges.ContainsKey(vars.activeQuestId.Current)){
-    if(vars.isCutsceneStart && vars.questSplits.ContainsKey(vars.activeQuestId.Current)) {
-      if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene2") && vars.cutsceneCounts[vars.activeQuestId.Current] == 2) {
-        vars.cutscenesViewed = 0;
-        vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
-        vars.completedSieges.Add(vars.activeQuestId.Current, true);
-        return true;
-      }
-      if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene3") && vars.cutsceneCounts[vars.activeQuestId.Current] == 3) {
-        vars.cutscenesViewed = 0;
-        vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
-        vars.completedSieges.Add(vars.activeQuestId.Current, true);
-        return true;
-      }
-      if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene4") && vars.cutsceneCounts[vars.activeQuestId.Current] == 4) {
-        vars.cutscenesViewed = 0;
-        vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
-        vars.completedSieges.Add(vars.activeQuestId.Current, true);
-        return true;
-      }
+  if(vars.isCutsceneStart && vars.questSplits.ContainsKey(vars.activeQuestId.Current)) {
+    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene2") && vars.cutsceneCounts[vars.activeQuestId.Current] == 2) {
+      vars.cutscenesViewed = 0;
+      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
+      return true;
+    }
+    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene3") && vars.cutsceneCounts[vars.activeQuestId.Current] == 3) {
+      vars.cutscenesViewed = 0;
+      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
+      return true;
+    }
+    if(vars.questSplits[vars.activeQuestId.Current].Contains("cutscene4") && vars.cutsceneCounts[vars.activeQuestId.Current] == 4) {
+      vars.cutscenesViewed = 0;
+      vars.cutsceneCounts[vars.activeQuestId.Current] = 0;
+      return true;
     }
   }
   
